@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spoon — The No-Heat Pudding Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+/* ═══════════════════════════════
+   EXISTING BOOKLET CSS — PRESERVED
+   ═══════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#f7f0e3;--parchment:#ede3cc;--chocolate:#2c1a0e;
+  --espresso:#4a2c17;--caramel:#b5713a;--gold:#c89b3c;
+  --sage:#7a9e7e;--blush:#d4856a;--ink:#1a1008;
+}
+body{background-color:var(--cream);color:var(--chocolate);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;padding:0;}
+
+/* COVER */
+.cover{background-color:var(--chocolate);color:var(--cream);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 40px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(180,113,58,.18) 0%,transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(200,155,60,.12) 0%,transparent 55%);pointer-events:none;}
+.cover-eyebrow{font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:.3em;font-size:.7rem;text-transform:uppercase;color:var(--gold);margin-bottom:28px;opacity:0;animation:fadeUp .8s ease forwards .2s;}
+.cover-title{font-family:'Playfair Display',serif;font-size:clamp(3rem,9vw,6.5rem);font-weight:900;line-height:1.0;letter-spacing:-.01em;margin-bottom:24px;opacity:0;animation:fadeUp .9s ease forwards .4s;}
+.cover-title em{font-style:italic;color:var(--gold);}
+.cover-subtitle{font-family:'DM Serif Display',serif;font-style:italic;font-size:clamp(1rem,2.5vw,1.3rem);color:rgba(247,240,227,.7);max-width:480px;margin-bottom:40px;opacity:0;animation:fadeUp .9s ease forwards .6s;}
+.cover-rule{width:60px;height:2px;background:var(--gold);margin:0 auto 40px;opacity:0;animation:fadeUp .9s ease forwards .7s;}
+.cover-pillars{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .9s ease forwards .9s;margin-bottom:48px;}
+.pillar{text-align:center;}
+.pillar-number{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--gold);display:block;}
+.pillar-label{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(247,240,227,.55);}
+.cover-cta{opacity:0;animation:fadeUp .9s ease forwards 1.1s;}
+.cta-btn{background:var(--gold);color:var(--chocolate);font-family:'DM Sans',sans-serif;font-weight:500;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;border:none;padding:14px 36px;border-radius:2px;cursor:pointer;transition:background .2s,transform .2s;}
+.cta-btn:hover{background:#d4a940;transform:translateY(-2px);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+/* SECTION */
+.section{max-width:900px;margin:0 auto;padding:80px 40px;}
+.section+.section{border-top:1px solid var(--parchment);}
+.section-label{font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:.3em;font-size:.65rem;text-transform:uppercase;color:var(--caramel);margin-bottom:16px;}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;margin-bottom:24px;color:var(--espresso);}
+.section-title em{font-style:italic;color:var(--caramel);}
+.section-intro{font-size:1.05rem;color:var(--espresso);opacity:.8;max-width:640px;margin-bottom:40px;}
+
+/* BASE CARD */
+.base-card{background:var(--chocolate);color:var(--cream);border-radius:4px;padding:44px 48px;position:relative;overflow:hidden;}
+.base-card::after{content:'BASE';position:absolute;right:-18px;top:32px;font-family:'Playfair Display',serif;font-size:5rem;font-weight:900;color:rgba(255,255,255,.04);writing-mode:vertical-rl;pointer-events:none;}
+.base-card h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);margin-bottom:28px;letter-spacing:.02em;}
+.base-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+.base-list{list-style:none;}
+.base-list li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid rgba(247,240,227,.1);font-size:.95rem;}
+.base-list li:last-child{border-bottom:none;}
+.base-amount{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);white-space:nowrap;}
+.base-note{font-size:.82rem;color:rgba(247,240,227,.5);margin-top:20px;font-style:italic;}
+.step-list{list-style:none;counter-reset:steps;}
+.step-list li{counter-increment:steps;display:flex;gap:20px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(247,240,227,.1);font-size:.95rem;}
+.step-list li:last-child{border-bottom:none;}
+.step-list li::before{content:counter(steps);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);min-width:24px;padding-top:1px;}
+
+/* MODULE */
+.module{margin-top:40px;}
+.module-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.module-tag{background:var(--caramel);color:var(--cream);font-size:.6rem;font-weight:500;letter-spacing:.25em;text-transform:uppercase;padding:4px 10px;border-radius:2px;white-space:nowrap;}
+.module-tag.green{background:var(--sage);}
+.module-tag.pink{background:var(--blush);}
+.module-tag.dark{background:var(--espresso);}
+.module-rule{flex:1;height:1px;background:var(--parchment);}
+.module-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--espresso);margin-bottom:6px;}
+.module-instruction{font-size:.88rem;color:var(--caramel);margin-bottom:20px;font-weight:500;}
+
+/* OPTION CARDS */
+.option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.option-card{border:1.5px solid var(--parchment);border-radius:4px;padding:16px 18px;transition:border-color .2s,background .2s;background:white;}
+.option-card:hover{border-color:var(--caramel);background:#fdf8f2;}
+.option-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--espresso);margin-bottom:3px;}
+.option-amount{font-size:.75rem;color:var(--caramel);font-weight:500;letter-spacing:.05em;margin-bottom:6px;}
+.option-desc{font-size:.8rem;color:var(--espresso);opacity:.65;line-height:1.5;}
+
+/* COMBO CARDS */
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:8px;}
+.combo-card{border-radius:4px;padding:24px 26px;position:relative;overflow:hidden;}
+.combo-card.choc{background:#2c1a0e;color:var(--cream);}
+.combo-card.vanilla{background:#f5ead2;color:var(--espresso);}
+.combo-card.matcha{background:#2d3f2f;color:var(--cream);}
+.combo-card.pb{background:#5c3a1e;color:var(--cream);}
+.combo-card.mocha{background:#1a1008;color:var(--cream);}
+.combo-card.berry{background:#5c2535;color:var(--cream);}
+.combo-card.tropical{background:#1f3a38;color:var(--cream);}
+.combo-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:12px;}
+.combo-name span{font-style:italic;opacity:.65;font-size:.85rem;display:block;font-weight:400;margin-top:2px;}
+.combo-row{font-size:.8rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;gap:8px;opacity:.88;}
+.combo-card.vanilla .combo-row{border-bottom-color:rgba(0,0,0,.08);}
+.combo-row:last-child{border-bottom:none;}
+.combo-val{font-weight:500;opacity:1;text-align:right;}
+
+/* TIPS BOX */
+.tips-box{background:var(--parchment);border-left:4px solid var(--caramel);border-radius:0 4px 4px 0;padding:28px 32px;margin-top:40px;}
+.tips-box h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--espresso);margin-bottom:14px;}
+.tips-box ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.tips-box ul li{font-size:.9rem;color:var(--espresso);padding-left:18px;position:relative;}
+.tips-box ul li::before{content:'—';position:absolute;left:0;color:var(--caramel);}
+
+/* ═══════════════════════════════
+   NEW ADDITIONS
+   ═══════════════════════════════ */
+
+/* BASE TOGGLE */
+.base-toggle-wrap{background:var(--chocolate);padding:20px;display:flex;justify-content:center;position:sticky;top:0;z-index:100;}
+.base-toggle{display:flex;background:rgba(255,255,255,.08);border-radius:4px;padding:3px;gap:3px;}
+.toggle-btn{background:transparent;color:rgba(247,240,227,.6);border:none;padding:8px 24px;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.toggle-btn.active{background:var(--gold);color:var(--chocolate);}
+.toggle-btn:hover:not(.active){color:var(--cream);}
+
+/* TAB NAV */
+.tab-nav{display:flex;justify-content:center;gap:0;background:var(--parchment);border-bottom:2px solid var(--caramel);}
+.tab-btn{background:transparent;border:none;padding:16px 32px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--espresso);cursor:pointer;transition:all .2s;position:relative;opacity:.55;}
+.tab-btn.active{opacity:1;color:var(--caramel);}
+.tab-btn.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--caramel);}
+.tab-btn:hover:not(.active){opacity:.8;}
+
+/* TAB CONTENT */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* NUTRITION LABEL */
+.nutrition-label{border:2px solid var(--chocolate);max-width:280px;font-family:'DM Sans',sans-serif;background:white;}
+.nutrition-label .nl-header{padding:6px 10px;border-bottom:8px solid var(--chocolate);}
+.nutrition-label .nl-header h4{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;line-height:1.1;}
+.nutrition-label .nl-serving{font-size:.72rem;padding:4px 10px;border-bottom:4px solid var(--chocolate);color:#333;}
+.nutrition-label .nl-calories{display:flex;justify-content:space-between;align-items:flex-end;padding:4px 10px;border-bottom:4px solid var(--chocolate);}
+.nutrition-label .nl-cal-label{font-size:.75rem;font-weight:600;}
+.nutrition-label .nl-cal-value{font-size:2rem;font-weight:900;line-height:1;}
+.nutrition-label .nl-row{display:flex;justify-content:space-between;font-size:.75rem;padding:2px 10px;border-bottom:1px solid #ccc;color:#222;}
+.nutrition-label .nl-row.bold{font-weight:700;}
+.nutrition-label .nl-row.indent{padding-left:22px;font-size:.72rem;}
+.nutrition-label .nl-footer{font-size:.65rem;padding:6px 10px;color:#555;border-top:4px solid var(--chocolate);}
+
+/* COMPACT NUTRITION (in cards) */
+.compact-nutrition{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);}
+.cn-item{text-align:center;}
+.cn-val{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold);display:block;}
+.cn-label{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;opacity:.6;}
+.combo-card.vanilla .cn-val{color:var(--caramel);}
+.combo-card.vanilla .cn-label{opacity:.7;}
+.combo-card.vanilla .compact-nutrition{border-top-color:rgba(0,0,0,.1);}
+
+/* RECIPE CARD ACTIONS */
+.recipe-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.recipe-btn{background:rgba(255,255,255,.1);color:var(--cream);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:2px;font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;font-family:'DM Sans',sans-serif;}
+.recipe-btn:hover{background:rgba(255,255,255,.2);}
+.combo-card.vanilla .recipe-btn{background:rgba(0,0,0,.07);color:var(--espresso);border-color:rgba(0,0,0,.15);}
+.combo-card.vanilla .recipe-btn:hover{background:rgba(0,0,0,.13);}
+.recipe-btn.expand-btn{}
+
+/* RECIPE EXPANDED VIEW */
+.recipe-expanded{display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);}
+.recipe-expanded.open{display:block;}
+.combo-card.vanilla .recipe-expanded{border-top-color:rgba(0,0,0,.1);}
+.expand-steps{list-style:none;counter-reset:esteps;margin-bottom:12px;}
+.expand-steps li{counter-increment:esteps;display:flex;gap:10px;font-size:.8rem;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);opacity:.85;}
+.combo-card.vanilla .expand-steps li{border-bottom-color:rgba(0,0,0,.06);}
+.expand-steps li::before{content:counter(esteps);font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);min-width:16px;}
+.combo-card.vanilla .expand-steps li::before{color:var(--caramel);}
+.expand-steps li:last-child{border-bottom:none;}
+
+/* BUILDER */
+.builder-wrap{max-width:960px;margin:0 auto;padding:60px 40px;}
+.builder-header{text-align:center;margin-bottom:48px;}
+.builder-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:40px;}
+.progress-step{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.progress-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--parchment);background:white;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;color:var(--parchment);transition:all .3s;}
+.progress-dot.active{border-color:var(--caramel);color:var(--caramel);}
+.progress-dot.done{background:var(--caramel);border-color:var(--caramel);color:white;}
+.progress-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--espresso);opacity:.5;white-space:nowrap;}
+.progress-label.active{opacity:1;color:var(--caramel);}
+.progress-line{flex:1;height:2px;background:var(--parchment);margin:0 8px;margin-bottom:22px;transition:background .3s;min-width:20px;}
+.progress-line.done{background:var(--caramel);}
+
+.builder-step{display:none;}
+.builder-step.active{display:block;}
+.builder-step-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--espresso);margin-bottom:6px;}
+.builder-step-sub{font-size:.9rem;color:var(--caramel);margin-bottom:28px;font-weight:500;}
+
+/* AMOUNT SELECTOR */
+.amount-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px;}
+.amount-card{border:1.5px solid var(--parchment);border-radius:4px;padding:16px 18px;background:white;transition:border-color .2s;}
+.amount-card.selected{border-color:var(--caramel);background:#fdf8f2;}
+.amount-card-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--espresso);margin-bottom:3px;}
+.amount-card-desc{font-size:.75rem;color:var(--espresso);opacity:.55;margin-bottom:10px;line-height:1.45;}
+.amount-card-nutrition{font-size:.7rem;color:var(--caramel);margin-bottom:10px;}
+.amount-controls{display:flex;align-items:center;gap:10px;}
+.amt-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--parchment);background:white;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--espresso);}
+.amt-btn:hover{border-color:var(--caramel);color:var(--caramel);}
+.amt-btn:disabled{opacity:.3;cursor:not-allowed;}
+.amt-display{font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--espresso);min-width:60px;text-align:center;}
+.amt-unit{font-size:.7rem;color:var(--espresso);opacity:.5;}
+
+/* PROGRESS BAR */
+.tbsp-bar-wrap{margin-bottom:28px;}
+.tbsp-bar-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--espresso);margin-bottom:8px;font-weight:500;}
+.tbsp-bar-label span:last-child{color:var(--caramel);}
+.tbsp-bar{height:8px;background:var(--parchment);border-radius:4px;overflow:hidden;}
+.tbsp-bar-fill{height:100%;background:var(--caramel);border-radius:4px;transition:width .3s;width:0%;}
+.tbsp-bar-fill.full{background:var(--sage);}
+.tbsp-bar-fill.over{background:var(--blush);}
+.tbsp-status{font-size:.75rem;margin-top:6px;color:var(--espresso);opacity:.6;}
+.tbsp-status.ok{color:var(--sage);opacity:1;font-weight:500;}
+.tbsp-status.over{color:var(--blush);opacity:1;font-weight:500;}
+
+/* TOPPING CHECKBOXES */
+.topping-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.topping-check{display:flex;align-items:flex-start;gap:10px;border:1.5px solid var(--parchment);border-radius:4px;padding:14px;cursor:pointer;background:white;transition:border-color .2s;}
+.topping-check:hover{border-color:var(--caramel);}
+.topping-check input{margin-top:3px;accent-color:var(--caramel);}
+.topping-check-text{}
+.topping-check-name{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;color:var(--espresso);}
+.topping-check-desc{font-size:.72rem;color:var(--espresso);opacity:.55;margin-top:2px;}
+.topping-check-cal{font-size:.7rem;color:var(--caramel);margin-top:3px;}
+
+/* YOGURT ADDON */
+.yogurt-addon{border:1.5px solid var(--sage);border-radius:4px;padding:18px;background:#f4faf5;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+.yogurt-addon input{margin-top:4px;accent-color:var(--sage);}
+.yogurt-addon-text h4{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--espresso);margin-bottom:3px;}
+.yogurt-addon-text p{font-size:.8rem;color:var(--espresso);opacity:.7;}
+
+/* LIVE NUTRITION PANEL */
+.live-nutrition{background:var(--chocolate);color:var(--cream);border-radius:4px;padding:28px;position:sticky;top:100px;}
+.live-nutrition h4{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin-bottom:16px;}
+.ln-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(247,240,227,.08);font-size:.85rem;}
+.ln-row:last-child{border-bottom:none;}
+.ln-label{opacity:.7;}
+.ln-val{font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);}
+.ln-total{margin-top:12px;padding-top:12px;border-top:2px solid rgba(247,240,227,.2);}
+.ln-total .ln-row{font-weight:500;}
+.builder-two-col{display:grid;grid-template-columns:1fr 300px;gap:32px;align-items:start;}
+@media(max-width:700px){.builder-two-col{grid-template-columns:1fr;}.live-nutrition{position:static;}}
+
+/* BUILDER NAV */
+.builder-nav{display:flex;justify-content:space-between;margin-top:32px;}
+.builder-nav-btn{padding:12px 32px;border-radius:2px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none;}
+.builder-nav-btn.primary{background:var(--caramel);color:white;}
+.builder-nav-btn.primary:hover{background:var(--espresso);}
+.builder-nav-btn.secondary{background:transparent;color:var(--espresso);border:1.5px solid var(--parchment);}
+.builder-nav-btn.secondary:hover{border-color:var(--caramel);}
+.builder-nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* REVIEW STEP */
+.review-card{background:var(--chocolate);color:var(--cream);border-radius:4px;padding:36px;}
+.review-name-input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(247,240,227,.2);border-radius:3px;padding:12px 16px;color:var(--cream);font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:16px;}
+.review-name-input::placeholder{color:rgba(247,240,227,.3);}
+.review-name-input:focus{outline:none;border-color:var(--gold);}
+.review-submitter{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(247,240,227,.15);border-radius:3px;padding:10px 16px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.9rem;margin-bottom:20px;}
+.review-submitter::placeholder{color:rgba(247,240,227,.3);}
+.review-submitter:focus{outline:none;border-color:var(--gold);}
+.review-desc{font-size:.9rem;opacity:.7;font-style:italic;margin-bottom:20px;min-height:40px;}
+.ai-generating{display:flex;align-items:center;gap:10px;font-size:.85rem;opacity:.6;}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite;}
+.ai-dot:nth-child(2){animation-delay:.2s;}
+.ai-dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+.review-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.review-tag{background:rgba(255,255,255,.1);padding:4px 12px;border-radius:20px;font-size:.75rem;}
+.review-download-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.dl-btn{padding:10px 22px;border-radius:2px;font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.dl-btn.png{background:var(--gold);color:var(--chocolate);}
+.dl-btn.pdf{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+.dl-btn:hover{opacity:.85;}
+.submit-btn{width:100%;padding:14px;background:var(--sage);color:white;border:none;border-radius:2px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-top:16px;}
+.submit-btn:hover{background:#68917c;}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+.submit-success{background:rgba(122,158,126,.2);border:1px solid var(--sage);border-radius:4px;padding:16px;text-align:center;display:none;}
+.submit-success.show{display:block;}
+
+/* COMMUNITY */
+.community-wrap{max-width:960px;margin:0 auto;padding:60px 40px;}
+.community-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:16px;}
+.sort-toggle{display:flex;gap:0;border:1.5px solid var(--parchment);border-radius:4px;overflow:hidden;}
+.sort-btn{background:white;border:none;padding:8px 20px;font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:var(--espresso);opacity:.55;transition:all .2s;}
+.sort-btn.active{background:var(--caramel);color:white;opacity:1;}
+.suggest-btn{background:var(--espresso);color:var(--cream);border:none;padding:10px 22px;border-radius:2px;font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s;font-family:'DM Sans',sans-serif;}
+.suggest-btn:hover{background:var(--chocolate);}
+.community-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.community-card{background:white;border:1.5px solid var(--parchment);border-radius:6px;overflow:hidden;transition:border-color .2s;}
+.community-card:hover{border-color:var(--caramel);}
+.cc-header{background:var(--chocolate);color:var(--cream);padding:20px 22px;}
+.cc-base-tag{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.cc-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:4px;}
+.cc-desc{font-size:.78rem;opacity:.65;font-style:italic;}
+.cc-body{padding:16px 22px;}
+.cc-ingredients{font-size:.78rem;color:var(--espresso);opacity:.7;margin-bottom:12px;line-height:1.6;}
+.cc-nutrition{display:flex;gap:16px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--parchment);}
+.cc-nut-item{text-align:center;}
+.cc-nut-val{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--caramel);display:block;}
+.cc-nut-label{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--espresso);opacity:.5;}
+.cc-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;border-top:1px solid var(--parchment);background:#fdf8f2;}
+.cc-meta{font-size:.7rem;color:var(--espresso);opacity:.5;}
+.cc-actions{display:flex;gap:8px;align-items:center;}
+.cc-dl-btn{font-size:.65rem;padding:5px 10px;background:white;border:1px solid var(--parchment);border-radius:2px;cursor:pointer;color:var(--espresso);font-family:'DM Sans',sans-serif;transition:border-color .2s;}
+.cc-dl-btn:hover{border-color:var(--caramel);}
+
+/* SPOON RATING */
+.spoon-rating{display:flex;align-items:center;gap:6px;}
+.spoon-stars{display:flex;gap:2px;}
+.spoon{font-size:1.1rem;cursor:pointer;opacity:.25;transition:opacity .15s,transform .15s;line-height:1;}
+.spoon.active{opacity:1;}
+.spoon:hover{transform:scale(1.2);}
+.spoon-avg{font-size:.72rem;color:var(--espresso);opacity:.55;white-space:nowrap;}
+
+/* COMMENTS */
+.cc-comments{border-top:1px solid var(--parchment);padding:16px 22px;}
+.comment-toggle{background:none;border:none;font-size:.75rem;color:var(--caramel);cursor:pointer;font-weight:500;padding:0;font-family:'DM Sans',sans-serif;}
+.comments-list{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
+.comment-item{background:#fdf8f2;border-radius:3px;padding:10px 12px;}
+.comment-author{font-size:.7rem;font-weight:500;color:var(--caramel);margin-bottom:3px;}
+.comment-text{font-size:.8rem;color:var(--espresso);}
+.comment-date{font-size:.65rem;color:var(--espresso);opacity:.4;margin-top:3px;}
+.comment-form{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.comment-form input,.comment-form textarea{border:1.5px solid var(--parchment);border-radius:3px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--espresso);background:white;}
+.comment-form input:focus,.comment-form textarea:focus{outline:none;border-color:var(--caramel);}
+.comment-form textarea{resize:vertical;min-height:60px;}
+.comment-submit{background:var(--caramel);color:white;border:none;padding:8px 18px;border-radius:2px;font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;align-self:flex-end;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.comment-submit:hover{background:var(--espresso);}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:80px 40px;}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--espresso);margin-bottom:12px;}
+.empty-state p{color:var(--espresso);opacity:.6;font-size:.9rem;max-width:400px;margin:0 auto;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,26,14,.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--cream);border-radius:6px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;padding:40px;}
+.modal h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--espresso);margin-bottom:6px;}
+.modal p{font-size:.88rem;color:var(--espresso);opacity:.7;margin-bottom:24px;}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--caramel);margin-bottom:6px;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;border:1.5px solid var(--parchment);border-radius:3px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--espresso);background:white;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{outline:none;border-color:var(--caramel);}
+.modal-field textarea{resize:vertical;min-height:80px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;}
+.modal-btn{padding:10px 24px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;}
+.modal-btn.primary{background:var(--caramel);color:white;}
+.modal-btn.secondary{background:transparent;border:1.5px solid var(--parchment);color:var(--espresso);}
+
+/* ADMIN PANEL */
+.admin-wrap{max-width:900px;margin:0 auto;padding:60px 40px;}
+.admin-pending-card{background:white;border:1.5px solid var(--parchment);border-radius:4px;padding:20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;}
+.admin-pending-info h4{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--espresso);margin-bottom:4px;}
+.admin-pending-info p{font-size:.8rem;color:var(--espresso);opacity:.65;}
+.admin-pending-info .meta{font-size:.7rem;color:var(--caramel);margin-top:6px;}
+.admin-actions{display:flex;gap:8px;flex-shrink:0;}
+.approve-btn{background:var(--sage);color:white;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:.72rem;font-family:'DM Sans',sans-serif;font-weight:500;}
+.reject-btn{background:var(--blush);color:white;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:.72rem;font-family:'DM Sans',sans-serif;font-weight:500;}
+.admin-login{text-align:center;padding:80px 40px;}
+.admin-login input{border:1.5px solid var(--parchment);border-radius:3px;padding:12px 20px;font-family:'DM Sans',sans-serif;font-size:1rem;margin-bottom:12px;width:280px;display:block;margin-left:auto;margin-right:auto;}
+.admin-login button{background:var(--chocolate);color:var(--cream);border:none;padding:12px 32px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* HIDDEN RECIPE CARD FOR DOWNLOAD */
+.dl-recipe-card{position:fixed;left:-9999px;top:0;width:600px;background:var(--chocolate);color:var(--cream);padding:48px;border-radius:4px;font-family:'DM Sans',sans-serif;}
+.dl-recipe-card h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:8px;}
+.dl-recipe-card .tagline{font-style:italic;opacity:.7;margin-bottom:24px;}
+.dl-recipe-card .dl-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:.9rem;}
+
+/* FOOTER */
+footer{background:var(--chocolate);color:rgba(247,240,227,.4);text-align:center;padding:40px 24px;font-size:.75rem;letter-spacing:.15em;}
+footer strong{color:var(--gold);font-weight:500;}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-top:12px;}
+.footer-link{color:rgba(247,240,227,.3);cursor:pointer;text-decoration:none;font-size:.7rem;letter-spacing:.1em;transition:color .2s;}
+.footer-link:hover{color:var(--gold);}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .section,.builder-wrap,.community-wrap{padding:50px 20px;}
+  .base-grid{grid-template-columns:1fr;}
+  .base-card{padding:28px 24px;}
+  .toggle-btn{padding:8px 14px;font-size:.7rem;}
+  .tab-btn{padding:14px 18px;font-size:.75rem;}
+  .combo-grid{grid-template-columns:1fr;}
+  .builder-two-col{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="cover" id="hero">
+  <p class="cover-eyebrow">A New Kind of Healthy Indulgence</p>
+  <h1 class="cover-title">No heat.<br><em>All pudding.</em></h1>
+  <p class="cover-subtitle">A modular recipe system that lets you build, discover, and share silken tofu and chia puddings — endlessly customizable, genuinely nutritious.</p>
+  <div class="cover-rule"></div>
+  <div class="cover-pillars">
+    <div class="pillar"><span class="pillar-number">2</span><span class="pillar-label">Bases</span></div>
+    <div class="pillar"><span class="pillar-number">7</span><span class="pillar-label">Signature Recipes</span></div>
+    <div class="pillar"><span class="pillar-number">6+</span><span class="pillar-label">Sweeteners</span></div>
+    <div class="pillar"><span class="pillar-number">∞</span><span class="pillar-label">Combinations</span></div>
+  </div>
+  <div class="cover-cta">
+    <button class="cta-btn" onclick="document.getElementById('main-app').scrollIntoView({behavior:'smooth'})">Start Exploring ↓</button>
+  </div>
+</div>
+
+<!-- ══════════ BASE TOGGLE ══════════ -->
+<div id="main-app">
+<div class="base-toggle-wrap">
+  <div class="base-toggle">
+    <button class="toggle-btn active" data-base="tofu" onclick="setBaseFilter('tofu')">🫙 Tofu</button>
+    <button class="toggle-btn" data-base="both" onclick="setBaseFilter('both')">🍮 Both</button>
+    <button class="toggle-btn" data-base="chia" onclick="setBaseFilter('chia')">🌱 Chia</button>
+  </div>
+</div>
+
+<!-- ══════════ TAB NAV ══════════ -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('signature')">Signature Recipes</button>
+  <button class="tab-btn" onclick="switchTab('builder')">Build Your Own</button>
+  <button class="tab-btn" onclick="switchTab('community')">Community</button>
+</nav>
+
+<!-- ══════════ TAB: SIGNATURE ══════════ -->
+<div class="tab-content active" id="tab-signature">
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <p class="section-label">The System</p>
+    <h2 class="section-title">How to Use<br><em>This Guide</em></h2>
+    <p class="section-intro">Every pudding starts with the same base — then you build your flavor and sweetness using two simple rules: pick any combination of flavors totaling <strong>3 tablespoons</strong>, and any combination of sweeteners totaling <strong>3 tablespoons</strong>.</p>
+    <div class="base-card" id="base-info-card">
+      <h3 id="base-info-title">The Universal Tofu Base &nbsp;·&nbsp; Always Use This</h3>
+      <div class="base-grid">
+        <div>
+          <ul class="base-list" id="base-ingredient-list">
+            <li><span>Silken tofu, drained &amp; patted dry</span><span class="base-amount">12 oz</span></li>
+            <li><span>Unsweetened plant milk</span><span class="base-amount">2 tbsp</span></li>
+            <li><span>Pure vanilla extract</span><span class="base-amount">1 tsp</span></li>
+            <li><span>Sea salt</span><span class="base-amount">1 pinch</span></li>
+            <li><span>Your Flavor Mix</span><span class="base-amount">3 tbsp total</span></li>
+            <li><span>Your Sweetener Mix</span><span class="base-amount">3 tbsp total</span></li>
+          </ul>
+          <p class="base-note">Yields 2 servings. Scale proportionally.</p>
+        </div>
+        <div>
+          <ul class="step-list" id="base-steps-list">
+            <li>Drain tofu and pat dry thoroughly with paper towels.</li>
+            <li>Add tofu, milk, vanilla, and salt to a blender or food processor.</li>
+            <li>Add your chosen flavors and sweeteners. Blend 60–90 seconds until silky smooth.</li>
+            <li>Taste and adjust. Blend again briefly if changed.</li>
+            <li>Refrigerate at least 1 hour. Stir and serve cold.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE RECIPES -->
+  <div class="section">
+    <p class="section-label">Tested Combinations</p>
+    <h2 class="section-title">Signature<br><em>Recipes</em></h2>
+    <p class="section-intro">Each uses exactly 3 tbsp of flavor and 3 tbsp of sweetener — drop them into the base and blend. Click any card to expand the full recipe and nutrition facts.</p>
+    <div class="combo-grid" id="signature-grid"></div>
+  </div>
+
+  <!-- FLAVOR MODULE -->
+  <div class="section">
+    <p class="section-label">Module 1</p>
+    <h2 class="section-title">Flavor<br><em>Options</em></h2>
+    <p class="section-intro">Mix and match any options below. Use one alone at 3 tbsp, or combine — just keep the <strong>total at 3 tbsp</strong>.</p>
+    <div class="module">
+      <div class="module-header"><span class="module-tag dark">Flavor Module</span><div class="module-rule"></div></div>
+      <p class="module-instruction">Choose 1 or more options → Total must equal 3 tbsp</p>
+      <div class="option-grid" id="flavor-module-grid"></div>
+    </div>
+  </div>
+
+  <!-- SWEETENER MODULE -->
+  <div class="section">
+    <p class="section-label">Module 2</p>
+    <h2 class="section-title">Natural<br><em>Sweeteners</em></h2>
+    <p class="section-intro">All natural, minimally processed. Use one alone or layer two or more — <strong>total must equal 3 tbsp</strong>.</p>
+    <div class="module">
+      <div class="module-header"><span class="module-tag green">Sweetener Module</span><div class="module-rule"></div></div>
+      <p class="module-instruction">Choose 1 or more options → Total must equal 3 tbsp</p>
+      <div class="option-grid" id="sweetener-module-grid"></div>
+    </div>
+    <div class="tips-box">
+      <h3>Making Date Paste</h3>
+      <ul>
+        <li>Pit 4–5 Medjool dates and soak in warm water for 10 minutes.</li>
+        <li>Drain, reserving the soaking water.</li>
+        <li>Blend dates with 2–3 tbsp of the soaking water until completely smooth.</li>
+        <li>Refrigerate up to 1 week. Freeze in ice cube trays for longer storage — 1 cube ≈ 1 tbsp.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TOPPINGS -->
+  <div class="section">
+    <p class="section-label">Finishing Touches</p>
+    <h2 class="section-title">Topping<br><em>Pairings</em></h2>
+    <p class="section-intro">Toppings add contrast in texture, temperature, and flavor. Organized by best-fit flavor profile.</p>
+    <div class="module">
+      <div class="module-header"><span class="module-tag pink">Topping Guide</span><div class="module-rule"></div></div>
+      <div class="option-grid" id="topping-module-grid"></div>
+    </div>
+    <div class="tips-box">
+      <h3>Master Tips</h3>
+      <ul>
+        <li><strong>Always drain and pat dry (tofu)</strong> — excess moisture is the only thing standing between you and a thick pudding.</li>
+        <li><strong>Stir chia seeds twice</strong> — once at mixing, once 5 minutes later, to prevent clumping.</li>
+        <li><strong>Blend longer than you think (tofu)</strong> — a full 90 seconds eliminates all graininess.</li>
+        <li><strong>Taste before chilling</strong> — pudding tastes less sweet after refrigerating, so slightly over-sweeten.</li>
+        <li><strong>Chill at least 1 hour (tofu) / 4 hours (chia)</strong> — texture firms up and flavor deepens.</li>
+        <li><strong>Stores up to 5 days</strong> refrigerated in sealed jars. Stir before serving.</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- /tab-signature -->
+
+<!-- ══════════ TAB: BUILDER ══════════ -->
+<div class="tab-content" id="tab-builder">
+  <div class="builder-wrap">
+    <div class="builder-header">
+      <p class="section-label">Build Your Own</p>
+      <h2 class="section-title">Create Your<br><em>Perfect Pudding</em></h2>
+      <p class="section-intro">Select your ingredients step by step. When complete, we'll generate a unique recipe name and you can download or share it with the community.</p>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="builder-progress" id="builder-progress"></div>
+
+    <div class="builder-two-col">
+      <div>
+        <!-- STEP 1: BASE -->
+        <div class="builder-step active" id="bstep-0">
+          <p class="builder-step-title">Choose Your Base</p>
+          <p class="builder-step-sub">This is the foundation of your pudding.</p>
+          <div class="amount-grid" id="base-selector"></div>
+          <div id="yogurt-addon-wrap" style="display:none">
+            <label class="yogurt-addon">
+              <input type="checkbox" id="yogurt-check" onchange="updateNutrition()"/>
+              <div class="yogurt-addon-text">
+                <h4>🥛 Add Greek Yogurt</h4>
+                <p>Blended into the base. Adds 14g protein, creamy texture, and a light tang. Recommended for chia pudding. +80 cal per serving.</p>
+              </div>
+            </label>
+          </div>
+          <div class="builder-nav">
+            <div></div>
+            <button class="builder-nav-btn primary" onclick="nextStep()">Next: Flavors →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: FLAVORS -->
+        <div class="builder-step" id="bstep-1">
+          <p class="builder-step-title">Choose Your Flavors</p>
+          <p class="builder-step-sub">Total must equal exactly 3 tbsp. Mix and match freely.</p>
+          <div class="tbsp-bar-wrap">
+            <div class="tbsp-bar-label"><span>Flavor tbsp used</span><span id="flavor-tbsp-label">0 / 3</span></div>
+            <div class="tbsp-bar"><div class="tbsp-bar-fill" id="flavor-bar"></div></div>
+            <p class="tbsp-status" id="flavor-status">Select flavors to fill 3 tbsp total</p>
+          </div>
+          <div class="amount-grid" id="flavor-selector"></div>
+          <div class="builder-nav">
+            <button class="builder-nav-btn secondary" onclick="prevStep()">← Back</button>
+            <button class="builder-nav-btn primary" id="flavor-next" onclick="nextStep()" disabled>Next: Sweeteners →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: SWEETENERS -->
+        <div class="builder-step" id="bstep-2">
+          <p class="builder-step-title">Choose Your Sweeteners</p>
+          <p class="builder-step-sub">Total must equal exactly 3 tbsp. Layer for complexity.</p>
+          <div class="tbsp-bar-wrap">
+            <div class="tbsp-bar-label"><span>Sweetener tbsp used</span><span id="sweet-tbsp-label">0 / 3</span></div>
+            <div class="tbsp-bar"><div class="tbsp-bar-fill" id="sweet-bar"></div></div>
+            <p class="tbsp-status" id="sweet-status">Select sweeteners to fill 3 tbsp total</p>
+          </div>
+          <div class="amount-grid" id="sweetener-selector"></div>
+          <div class="builder-nav">
+            <button class="builder-nav-btn secondary" onclick="prevStep()">← Back</button>
+            <button class="builder-nav-btn primary" id="sweet-next" onclick="nextStep()" disabled>Next: Toppings →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: TOPPINGS -->
+        <div class="builder-step" id="bstep-3">
+          <p class="builder-step-title">Choose Your Toppings</p>
+          <p class="builder-step-sub">Optional — but they do a lot. Select as many as you like.</p>
+          <div class="topping-grid" id="topping-selector"></div>
+          <div class="builder-nav">
+            <button class="builder-nav-btn secondary" onclick="prevStep()">← Back</button>
+            <button class="builder-nav-btn primary" onclick="nextStep()">Next: Finish →</button>
+          </div>
+        </div>
+
+        <!-- STEP 5: REVIEW -->
+        <div class="builder-step" id="bstep-4">
+          <p class="builder-step-title">Your Recipe</p>
+          <p class="builder-step-sub">We've generated a name — edit it to make it yours.</p>
+          <div class="review-card">
+            <input class="review-name-input" id="recipe-name-input" type="text" placeholder="Generating your recipe name…" />
+            <input class="review-submitter" id="submitter-name" type="text" placeholder="Your name or handle (optional)" />
+            <div class="review-desc" id="recipe-desc-display">
+              <div class="ai-generating" id="ai-loader"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Generating recipe description…</span></div>
+            </div>
+            <div class="review-tags" id="review-tags"></div>
+            <div class="review-download-btns">
+              <button class="dl-btn png" onclick="downloadPNG()">⬇ Download PNG</button>
+              <button class="dl-btn pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+            </div>
+            <button class="submit-btn" id="submit-btn" onclick="submitRecipe()">✦ Share with Community</button>
+            <div class="submit-success" id="submit-success">
+              <p style="font-size:.9rem;color:var(--sage);">✓ Recipe shared! Find it in the Community tab.</p>
+            </div>
+          </div>
+          <div class="builder-nav">
+            <button class="builder-nav-btn secondary" onclick="prevStep()">← Back</button>
+            <button class="builder-nav-btn secondary" onclick="resetBuilder()">Start Over</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE NUTRITION -->
+      <div class="live-nutrition" id="live-nutrition">
+        <h4>🥄 Live Nutrition</h4>
+        <p style="font-size:.75rem;opacity:.5;margin-bottom:16px;">Per serving · Updates as you build</p>
+        <div class="ln-row"><span class="ln-label">Calories</span><span class="ln-val" id="ln-cal">—</span></div>
+        <div class="ln-row"><span class="ln-label">Protein</span><span class="ln-val" id="ln-protein">—</span></div>
+        <div class="ln-row"><span class="ln-label">Total Fat</span><span class="ln-val" id="ln-fat">—</span></div>
+        <div class="ln-row"><span class="ln-label">Carbohydrates</span><span class="ln-val" id="ln-carbs">—</span></div>
+        <div class="ln-row"><span class="ln-label">Fiber</span><span class="ln-val" id="ln-fiber">—</span></div>
+        <div class="ln-row"><span class="ln-label">Sugar</span><span class="ln-val" id="ln-sugar">—</span></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-builder -->
+
+<!-- ══════════ TAB: COMMUNITY ══════════ -->
+<div class="tab-content" id="tab-community">
+  <div class="community-wrap">
+    <div class="community-controls">
+      <div>
+        <p class="section-label">Community</p>
+        <h2 class="section-title" style="font-size:1.8rem;margin-bottom:0;">User <em>Recipes</em></h2>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div class="sort-toggle">
+          <button class="sort-btn active" onclick="setCommunitySort('newest')">Newest First</button>
+          <button class="sort-btn" onclick="setCommunitySort('top')">Top Rated</button>
+        </div>
+        <button class="suggest-btn" onclick="openSuggestModal()">+ Suggest Ingredient</button>
+      </div>
+    </div>
+    <div class="community-grid" id="community-grid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <h3>No recipes yet</h3>
+        <p>Be the first — build your own pudding and share it with the community.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-community -->
+
+</div><!-- /main-app -->
+
+
+
+<!-- SUGGEST INGREDIENT MODAL -->
+<div class="modal-overlay" id="suggest-modal">
+  <div class="modal">
+    <h3>Suggest an Ingredient</h3>
+    <p>Found something that works beautifully? Share it — we'll review and add approved ingredients to the builder.</p>
+    <div class="modal-field"><label>Ingredient Name</label><input type="text" id="sg-name" placeholder="e.g. Tahini"/></div>
+    <div class="modal-field">
+      <label>Category</label>
+      <select id="sg-category">
+        <option value="flavor">Flavor</option>
+        <option value="sweetener">Sweetener</option>
+        <option value="topping">Topping</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Works With</label>
+      <select id="sg-base">
+        <option value="both">Both (Tofu &amp; Chia)</option>
+        <option value="tofu">Tofu Only</option>
+        <option value="chia">Chia Only</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Suggested Amount</label><input type="text" id="sg-amount" placeholder="e.g. up to 2 tbsp"/></div>
+    <div class="modal-field"><label>Why it works</label><textarea id="sg-desc" placeholder="Describe the flavor, texture, and why it pairs well…"></textarea></div>
+    <div class="modal-field"><label>Your name (optional)</label><input type="text" id="sg-submitter" placeholder="@yourhandle or display name"/></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeSuggestModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="submitSuggestion()">Submit Suggestion</button>
+    </div>
+  </div>
+</div>
+
+<!-- HIDDEN DOWNLOAD CARD -->
+<div id="dl-card" class="dl-recipe-card">
+  <div style="font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">🥄 Spoon · No-Heat Pudding Lab</div>
+  <h2 id="dl-title">Recipe Name</h2>
+  <p class="tagline" id="dl-tagline">Recipe description goes here</p>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:6px;">Ingredients</div>
+    <div id="dl-ingredients" style="font-size:.85rem;opacity:.8;line-height:1.9;"></div>
+  </div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:6px;">Nutrition Per Serving</div>
+    <div id="dl-nutrition" style="display:flex;gap:20px;"></div>
+  </div>
+  <div style="font-size:.7rem;opacity:.3;margin-top:20px;">spoon.pudding · Build your own at our site</div>
+</div>
+
+<footer>
+  <strong>Spoon — The No-Heat Pudding Lab</strong> &nbsp;·&nbsp; Silken Tofu &amp; Chia Edition
+  <div class="footer-links">
+    <span class="footer-link" onclick="openSuggestModal()">Suggest an Ingredient</span>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   SUPABASE CONFIG
+   Replace SUPABASE_URL and SUPABASE_ANON_KEY with your project values.
+   
+   SQL SCHEMA — Run in your Supabase SQL editor:
+   
+   create table recipes (
+     id uuid default gen_random_uuid() primary key,
+     created_at timestamptz default now(),
+     name text not null,
+     description text,
+     base text not null,
+     flavors jsonb not null,
+     sweeteners jsonb not null,
+     toppings jsonb,
+     yogurt_addon boolean default false,
+     nutrition jsonb not null,
+     display_name text,
+     avg_rating float default 0,
+     rating_count int default 0
+   );
+   create table ratings (
+     id uuid default gen_random_uuid() primary key,
+     recipe_id uuid references recipes(id) on delete cascade,
+     session_id text not null,
+     spoons int check (spoons between 1 and 5),
+     created_at timestamptz default now(),
+     unique(recipe_id, session_id)
+   );
+   create table comments (
+     id uuid default gen_random_uuid() primary key,
+     recipe_id uuid references recipes(id) on delete cascade,
+     display_name text not null,
+     content text not null,
+     created_at timestamptz default now()
+   );
+   create table ingredient_suggestions (
+     id uuid default gen_random_uuid() primary key,
+     created_at timestamptz default now(),
+     name text not null,
+     category text not null,
+     base_compatibility text,
+     amount text,
+     description text,
+     submitter text,
+     status text default 'pending'
+   );
+   ═══════════════════════════════════════════════════ */
+
+const SUPABASE_URL = 'https://bpthscyedmtjucjvcoug.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable__85HL_54vsocJ98wJM_GCg_-WgRvHLJ';
+
+let supabase = null;
+try {
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e) { console.warn('Supabase not configured:', e); }
+
+// Session ID for anonymous rating
+const SESSION_ID = localStorage.getItem('pudding_session') || (() => {
+  const id = 'sess_' + Math.random().toString(36).substr(2,12);
+  localStorage.setItem('pudding_session', id);
+  return id;
+})();
+
+/* ═══════════════ DATA ═══════════════ */
+
+const BASES = {
+  tofu: {
+    id:'tofu', name:'Silken Tofu', emoji:'🫙',
+    desc:'Blends into a lusciously smooth, protein-rich pudding. No cooking required.',
+    steps:[
+      'Drain silken tofu and pat dry thoroughly with paper towels.',
+      'Add tofu, 2 tbsp plant milk, 1 tsp vanilla, and a pinch of salt to a blender.',
+      'Add your chosen flavors and sweeteners.',
+      'Blend on high 60–90 seconds until completely smooth. Scrape sides as needed.',
+      'Taste and adjust. Refrigerate at least 1 hour before serving.'
+    ],
+    fixedIngredients:[
+      {name:'Silken Tofu (12 oz)', nutrition:{cal:90,protein:10,fat:4,carbs:3,fiber:0,sugar:0}},
+      {name:'Plant Milk (2 tbsp)', nutrition:{cal:6,protein:0,fat:0,carbs:1,fiber:0,sugar:0}},
+      {name:'Vanilla Extract (1 tsp)', nutrition:{cal:12,protein:0,fat:0,carbs:0.5,fiber:0,sugar:0}},
+    ]
+  },
+  chia: {
+    id:'chia', name:'Chia Seeds', emoji:'🌱',
+    desc:'No blender needed. Stir and chill for a thick, omega-3 packed pudding with natural texture.',
+    steps:[
+      'Whisk together 1½ cups plant milk, 1 tsp vanilla, your sweeteners, and a pinch of salt.',
+      'If using Greek yogurt, whisk in now until smooth.',
+      'Stir in 6 tbsp chia seeds thoroughly. Wait 5 minutes, then stir again.',
+      'Cover and refrigerate at least 4 hours or overnight.',
+      'Stir before serving. Add your chosen flavors (powders) as stir-ins or toppings.'
+    ],
+    fixedIngredients:[
+      {name:'Chia Seeds (6 tbsp)', nutrition:{cal:280,protein:9,fat:18,carbs:24,fiber:19,sugar:0}},
+      {name:'Plant Milk (1½ cups)', nutrition:{cal:45,protein:1,fat:1,carbs:7,fiber:0,sugar:3}},
+      {name:'Vanilla Extract (1 tsp)', nutrition:{cal:12,protein:0,fat:0,carbs:0.5,fiber:0,sugar:0}},
+    ]
+  }
+};
+
+const FLAVORS = [
+  {id:'cocoa',name:'Cocoa Powder',maxTbsp:3,bases:['tofu','chia'],desc:'Deep, classic chocolate. Dutch-process gives smoother results.',nutrition:{cal:12,protein:1,fat:0.5,carbs:3,fiber:2,sugar:0}},
+  {id:'carob',name:'Carob Powder',maxTbsp:3,bases:['tofu','chia'],desc:'Naturally sweeter than cocoa. Earthy, caramel-like, caffeine-free.',nutrition:{cal:14,protein:0,fat:0,carbs:3.5,fiber:1,sugar:2}},
+  {id:'matcha',name:'Matcha Powder',maxTbsp:1,bases:['tofu','chia'],desc:'Ceremonial grade. Earthy, grassy, vibrant green.',nutrition:{cal:9,protein:0.5,fat:0,carbs:1.5,fiber:0,sugar:0}},
+  {id:'nutbutter',name:'Natural Nut Butter',maxTbsp:3,bases:['tofu','chia'],desc:'Peanut, almond, cashew, or sunflower. Adds fat and depth.',nutrition:{cal:90,protein:4,fat:8,carbs:3,fiber:1,sugar:1}},
+  {id:'espresso',name:'Instant Espresso',maxTbsp:1,bases:['tofu','chia'],desc:'Dissolved in milk first. Intensifies chocolate beautifully.',nutrition:{cal:6,protein:0,fat:0,carbs:1,fiber:0,sugar:0}},
+  {id:'berrypowder',name:'Freeze-Dried Berry Powder',maxTbsp:3,bases:['tofu','chia'],desc:'Strawberry, raspberry, or mixed. Bright, fruity, tart.',nutrition:{cal:15,protein:0,fat:0,carbs:3.5,fiber:1,sugar:2.5}},
+  {id:'coconutcream',name:'Coconut Cream',maxTbsp:3,bases:['tofu','chia'],desc:'Full-fat canned. Rich tropical base. Replaces plant milk.',nutrition:{cal:50,protein:0.5,fat:5,carbs:1,fiber:0,sugar:1}},
+  {id:'vanillaboost',name:'Vanilla Boost',maxTbsp:1,bases:['tofu','chia'],desc:'Extra vanilla extract or paste. Best with neutral bases.',nutrition:{cal:12,protein:0,fat:0,carbs:0.5,fiber:0,sugar:0}},
+];
+
+const SWEETENERS = [
+  {id:'honey',name:'Raw Honey',maxTbsp:3,desc:'Mild floral sweetness. Not vegan. Beautiful with vanilla and berry.',nutrition:{cal:64,protein:0,fat:0,carbs:17,fiber:0,sugar:17}},
+  {id:'maple',name:'Pure Maple Syrup',maxTbsp:3,desc:'Warm, complex flavor. Most versatile option across all combos.',nutrition:{cal:52,protein:0,fat:0,carbs:13,fiber:0,sugar:12}},
+  {id:'datepaste',name:'Date Paste',maxTbsp:3,desc:'Deep caramel sweetness with fiber. Whole-food option.',nutrition:{cal:40,protein:0,fat:0,carbs:11,fiber:1,sugar:9}},
+  {id:'agave',name:'Agave Nectar',maxTbsp:2,desc:'Sweeter than others — use 2 tbsp max. Light is neutral, dark is rich.',nutrition:{cal:60,protein:0,fat:0,carbs:16,fiber:0,sugar:16}},
+  {id:'coconutnectar',name:'Coconut Nectar',maxTbsp:3,desc:'Low-glycemic. Mild caramel and butterscotch notes.',nutrition:{cal:45,protein:0,fat:0,carbs:12,fiber:0,sugar:11}},
+  {id:'molasses',name:'Blackstrap Molasses',maxTbsp:0.5,desc:'Very strong, bittersweet. Max ½ tbsp. Deepens chocolate perfectly.',nutrition:{cal:23,protein:0,fat:0,carbs:6,fiber:0,sugar:5}},
+];
+
+const TOPPINGS = [
+  {id:'berries',name:'Fresh Berries',bases:['tofu','chia'],desc:'Best with: Berry, Vanilla, Tropical. Bright acidity.',nutrition:{cal:40,protein:0.5,fat:0,carbs:10,fiber:3,sugar:7}},
+  {id:'darkchoc',name:'Shaved Dark Chocolate',bases:['tofu','chia'],desc:'Best with: Chocolate, Mocha, PB Fudge.',nutrition:{cal:70,protein:1,fat:5,carbs:7,fiber:1,sugar:5}},
+  {id:'coconutflakes',name:'Toasted Coconut Flakes',bases:['tofu','chia'],desc:'Best with: Tropical, Matcha, Vanilla.',nutrition:{cal:70,protein:0.5,fat:7,carbs:3,fiber:2,sugar:1}},
+  {id:'nuts',name:'Crushed Nuts',bases:['tofu','chia'],desc:'Pecans, walnuts, pistachios. Toast first.',nutrition:{cal:90,protein:3,fat:8,carbs:3,fiber:1,sugar:0}},
+  {id:'coconutwhip',name:'Whipped Coconut Cream',bases:['tofu','chia'],desc:'Works with every version.',nutrition:{cal:50,protein:0,fat:5,carbs:2,fiber:0,sugar:1}},
+  {id:'seasalt',name:'Flaky Sea Salt',bases:['tofu','chia'],desc:'Pinch only. Elevates chocolate and nut-based combos.',nutrition:{cal:0,protein:0,fat:0,carbs:0,fiber:0,sugar:0}},
+  {id:'granola',name:'Granola',bases:['tofu','chia'],desc:'Best with: Berry, Vanilla, Tropical. Hearty crunch.',nutrition:{cal:60,protein:1,fat:2,carbs:10,fiber:1,sugar:3}},
+  {id:'bananamango',name:'Sliced Banana or Mango',bases:['tofu','chia'],desc:'Best with: Tropical, Vanilla, PB Fudge.',nutrition:{cal:35,protein:0.5,fat:0,carbs:9,fiber:1,sugar:7}},
+  {id:'greekyogurt',name:'Greek Yogurt Dollop',bases:['tofu'],desc:'Tofu only topping. Tangy, protein-rich contrast.',nutrition:{cal:20,protein:3.5,fat:0,carbs:1.5,fiber:0,sugar:1.5}},
+];
+
+const SIGNATURE_RECIPES = [
+  {id:'classic-choc',name:'Classic Chocolate',tagline:'The original. Deep and satisfying.',base:'tofu',colorClass:'choc',
+    flavors:[{id:'cocoa',tbsp:3}],sweeteners:[{id:'maple',tbsp:3}],toppings:['darkchoc','seasalt'],yogurt:false},
+  {id:'pure-vanilla',name:'Pure Vanilla',tagline:'Clean, creamy, and timeless.',base:'tofu',colorClass:'vanilla',
+    flavors:[{id:'vanillaboost',tbsp:1},{id:'nutbutter',tbsp:2}],sweeteners:[{id:'honey',tbsp:2},{id:'datepaste',tbsp:1}],toppings:['berries','coconutwhip'],yogurt:false},
+  {id:'matcha-cream',name:'Matcha Cream',tagline:'Earthy, vibrant, slightly bitter.',base:'tofu',colorClass:'matcha',
+    flavors:[{id:'matcha',tbsp:1},{id:'coconutcream',tbsp:2}],sweeteners:[{id:'coconutnectar',tbsp:2},{id:'agave',tbsp:1}],toppings:['coconutflakes'],yogurt:false},
+  {id:'pb-fudge',name:'Peanut Butter Fudge',tagline:'Rich, nutty, and indulgent.',base:'tofu',colorClass:'pb',
+    flavors:[{id:'nutbutter',tbsp:2},{id:'cocoa',tbsp:1}],sweeteners:[{id:'datepaste',tbsp:2},{id:'maple',tbsp:1}],toppings:['darkchoc','nuts'],yogurt:false},
+  {id:'mocha-espresso',name:'Mocha Espresso',tagline:'For serious coffee lovers.',base:'tofu',colorClass:'mocha',
+    flavors:[{id:'cocoa',tbsp:2},{id:'espresso',tbsp:1}],sweeteners:[{id:'maple',tbsp:2.5},{id:'molasses',tbsp:0.5}],toppings:['darkchoc','seasalt'],yogurt:false},
+  {id:'strawberry-bliss',name:'Strawberry Bliss',tagline:'Bright, fruity, and fresh.',base:'tofu',colorClass:'berry',
+    flavors:[{id:'berrypowder',tbsp:3}],sweeteners:[{id:'honey',tbsp:2},{id:'agave',tbsp:1}],toppings:['berries','granola'],yogurt:false},
+  {id:'tropical-chia',name:'Tropical Chia Cream',tagline:'Lush, island-ready, and light.',base:'chia',colorClass:'tropical',
+    flavors:[{id:'coconutcream',tbsp:3}],sweeteners:[{id:'coconutnectar',tbsp:2},{id:'honey',tbsp:1}],toppings:['bananamango','coconutflakes'],yogurt:true},
+];
+
+/* ═══════════════ STATE ═══════════════ */
+let currentBase = 'tofu';
+let currentStep = 0;
+let builderState = {
+  base: 'tofu',
+  yogurt: false,
+  flavors: {}, // id -> tbsp
+  sweeteners: {}, // id -> tbsp
+  toppings: new Set(),
+};
+let communitySort = 'newest';
+let communityRecipes = [];
+
+/* ═══════════════ INIT ═══════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderSignatureRecipes();
+  renderModuleGrids();
+  renderBuilderSteps();
+  loadCommunityRecipes();
+  renderBuilderProgress();
+
+});
+
+/* ═══════════════ NAVIGATION ═══════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['signature','builder','community'].indexOf(tab)].classList.add('active');
+  if (tab === 'community') loadCommunityRecipes();
+}
+
+function setBaseFilter(base) {
+  currentBase = base;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.base === base));
+  updateBaseInfoCard();
+  filterSignatureRecipes();
+  if (base !== 'both') { builderState.base = base; renderBuilderSteps(); }
+}
+
+function updateBaseInfoCard() {
+  const b = currentBase === 'both' ? 'tofu' : currentBase;
+  const baseData = BASES[b];
+  document.getElementById('base-info-title').textContent =
+    `The Universal ${baseData.name} Base · Always Use This`;
+  const ingList = document.getElementById('base-ingredient-list');
+  const steps = document.getElementById('base-steps-list');
+  ingList.innerHTML = baseData.fixedIngredients.map(i =>
+    `<li><span>${i.name}</span><span class="base-amount"></span></li>`
+  ).join('') +
+    `<li><span>Your Flavor Mix</span><span class="base-amount">3 tbsp total</span></li>
+     <li><span>Your Sweetener Mix</span><span class="base-amount">3 tbsp total</span></li>
+     ${b === 'chia' ? '<li><span>Greek Yogurt (optional)</span><span class="base-amount">½ cup</span></li>' : ''}`;
+  steps.innerHTML = baseData.steps.map(s => `<li>${s}</li>`).join('');
+}
+
+/* ═══════════════ SIGNATURE RECIPES ═══════════════ */
+function calcNutrition(recipe) {
+  const b = BASES[recipe.base];
+  let n = {cal:0,protein:0,fat:0,carbs:0,fiber:0,sugar:0};
+  b.fixedIngredients.forEach(i => addN(n, i.nutrition));
+  if (recipe.yogurt) addN(n, {cal:80,protein:14,fat:0,carbs:6,fiber:0,sugar:5});
+  recipe.flavors.forEach(f => {
+    const data = FLAVORS.find(x=>x.id===f.id);
+    if (data) addN(n, scaleN(data.nutrition, f.tbsp));
+  });
+  recipe.sweeteners.forEach(s => {
+    const data = SWEETENERS.find(x=>x.id===s.id);
+    if (data) addN(n, scaleN(data.nutrition, s.tbsp));
+  });
+  // Divide by 2 for per-serving
+  return {
+    cal: Math.round(n.cal/2),
+    protein: Math.round(n.protein/2*10)/10,
+    fat: Math.round(n.fat/2*10)/10,
+    carbs: Math.round(n.carbs/2*10)/10,
+    fiber: Math.round(n.fiber/2*10)/10,
+    sugar: Math.round(n.sugar/2*10)/10,
+  };
+}
+
+function addN(target, src) {
+  Object.keys(src).forEach(k => { target[k] = (target[k]||0) + (src[k]||0); });
+}
+function scaleN(n, factor) {
+  const out={};
+  Object.keys(n).forEach(k => out[k] = n[k]*factor);
+  return out;
+}
+
+function renderSignatureRecipes() {
+  const grid = document.getElementById('signature-grid');
+  grid.innerHTML = SIGNATURE_RECIPES.map(r => renderSignatureCard(r)).join('');
+}
+
+function renderSignatureCard(r) {
+  const nut = calcNutrition(r);
+  const flavText = r.flavors.map(f => {
+    const d = FLAVORS.find(x=>x.id===f.id);
+    return d ? `${d.name} (${f.tbsp} tbsp)` : '';
+  }).join(', ');
+  const sweetText = r.sweeteners.map(s => {
+    const d = SWEETENERS.find(x=>x.id===s.id);
+    return d ? `${d.name} (${s.tbsp} tbsp)` : '';
+  }).join(', ');
+  const stepsHtml = BASES[r.base].steps.map(s=>`<li>${s}</li>`).join('');
+
+  return `<div class="combo-card ${r.colorClass}" data-base="${r.base}" id="sig-${r.id}">
+    <div class="combo-name">${r.name}<span>${r.tagline}</span></div>
+    <div class="combo-row"><span>Base</span><span class="combo-val">${r.base === 'chia' ? 'Chia' : 'Silken Tofu'}</span></div>
+    <div class="combo-row"><span>Flavor</span><span class="combo-val" style="font-size:.72rem">${flavText}</span></div>
+    <div class="combo-row"><span>Sweetener</span><span class="combo-val" style="font-size:.72rem">${sweetText}</span></div>
+    ${r.yogurt ? '<div class="combo-row"><span>+ Greek Yogurt base add-in</span><span class="combo-val">✓</span></div>' : ''}
+    <div class="compact-nutrition">
+      <div class="cn-item"><span class="cn-val">${nut.cal}</span><span class="cn-label">Cal</span></div>
+      <div class="cn-item"><span class="cn-val">${nut.protein}g</span><span class="cn-label">Protein</span></div>
+      <div class="cn-item"><span class="cn-val">${nut.fat}g</span><span class="cn-label">Fat</span></div>
+      <div class="cn-item"><span class="cn-val">${nut.carbs}g</span><span class="cn-label">Carbs</span></div>
+      <div class="cn-item"><span class="cn-val">${nut.fiber}g</span><span class="cn-label">Fiber</span></div>
+    </div>
+    <div class="recipe-actions">
+      <button class="recipe-btn expand-btn" onclick="toggleExpand('${r.id}')">View Full Recipe ↓</button>
+      <button class="recipe-btn" onclick="downloadSigPNG('${r.id}')">PNG</button>
+      <button class="recipe-btn" onclick="downloadSigPDF('${r.id}')">PDF</button>
+    </div>
+    <div class="recipe-expanded" id="expand-${r.id}">
+      <p style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;opacity:.5;margin-bottom:8px;">Steps</p>
+      <ol class="expand-steps">${stepsHtml}</ol>
+      <div style="margin-top:12px;">
+        ${renderFullNutritionLabel(nut)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFullNutritionLabel(nut) {
+  return `<div class="nutrition-label">
+    <div class="nl-header"><h4>Nutrition Facts</h4></div>
+    <div class="nl-serving">Per serving · Recipe yields 2 servings</div>
+    <div class="nl-calories"><span class="nl-cal-label">Calories</span><span class="nl-cal-value">${nut.cal}</span></div>
+    <div class="nl-row bold"><span>Total Fat</span><span>${nut.fat}g</span></div>
+    <div class="nl-row bold"><span>Total Carbohydrate</span><span>${nut.carbs}g</span></div>
+    <div class="nl-row indent"><span>Dietary Fiber</span><span>${nut.fiber}g</span></div>
+    <div class="nl-row indent"><span>Total Sugars</span><span>${nut.sugar}g</span></div>
+    <div class="nl-row bold"><span>Protein</span><span>${nut.protein}g</span></div>
+    <div class="nl-footer">*Estimates based on listed ingredients. Toppings not included.</div>
+  </div>`;
+}
+
+function toggleExpand(id) {
+  const el = document.getElementById('expand-' + id);
+  el.classList.toggle('open');
+  const btn = el.previousElementSibling.querySelector('.expand-btn');
+  if (btn) btn.textContent = el.classList.contains('open') ? 'Hide Recipe ↑' : 'View Full Recipe ↓';
+}
+
+function filterSignatureRecipes() {
+  document.querySelectorAll('.combo-card[data-base]').forEach(card => {
+    if (currentBase === 'both') {
+      card.style.display = '';
+    } else {
+      card.style.display = card.dataset.base === currentBase ? '' : 'none';
+    }
+  });
+}
+
+/* ═══════════════ MODULE GRIDS ═══════════════ */
+function renderModuleGrids() {
+  document.getElementById('flavor-module-grid').innerHTML = FLAVORS.map(f =>
+    `<div class="option-card">
+      <div class="option-name">${f.name}</div>
+      <div class="option-amount">up to ${f.maxTbsp} tbsp · ${f.nutrition.cal} cal/tbsp</div>
+      <div class="option-desc">${f.desc}</div>
+      <div style="font-size:.7rem;color:var(--caramel);margin-top:6px;">
+        Per tbsp: ${f.nutrition.protein}g protein · ${f.nutrition.fat}g fat · ${f.nutrition.carbs}g carbs · ${f.nutrition.fiber}g fiber
+      </div>
+    </div>`
+  ).join('');
+
+  document.getElementById('sweetener-module-grid').innerHTML = SWEETENERS.map(s =>
+    `<div class="option-card">
+      <div class="option-name">${s.name}</div>
+      <div class="option-amount">up to ${s.maxTbsp} tbsp · ${s.nutrition.cal} cal/tbsp</div>
+      <div class="option-desc">${s.desc}</div>
+      <div style="font-size:.7rem;color:var(--caramel);margin-top:6px;">
+        Per tbsp: ${s.nutrition.carbs}g carbs · ${s.nutrition.sugar}g sugar
+      </div>
+    </div>`
+  ).join('');
+
+  document.getElementById('topping-module-grid').innerHTML = TOPPINGS.map(t =>
+    `<div class="option-card">
+      <div class="option-name">${t.name}</div>
+      <div class="option-amount">${t.nutrition.cal} cal per serving</div>
+      <div class="option-desc">${t.desc}</div>
+      <div style="font-size:.7rem;color:var(--caramel);margin-top:6px;">
+        ${t.nutrition.protein}g protein · ${t.nutrition.fat}g fat · ${t.nutrition.carbs}g carbs
+      </div>
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════ BUILDER ═══════════════ */
+const STEP_LABELS = ['Base','Flavors','Sweeteners','Toppings','Finish'];
+
+function renderBuilderProgress() {
+  const prog = document.getElementById('builder-progress');
+  prog.innerHTML = STEP_LABELS.map((label, i) => {
+    const isDone = i < currentStep;
+    const isActive = i === currentStep;
+    return `
+      ${i > 0 ? `<div class="progress-line${isDone ? ' done' : ''}"></div>` : ''}
+      <div class="progress-step">
+        <div class="progress-dot${isActive ? ' active' : ''}${isDone ? ' done' : ''}">${isDone ? '✓' : i+1}</div>
+        <span class="progress-label${isActive ? ' active' : ''}">${label}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderBuilderSteps() {
+  renderBaseSelector();
+  renderFlavorSelector();
+  renderSweetenerSelector();
+  renderToppingSelector();
+  updateNutrition();
+}
+
+function renderBaseSelector() {
+  const grid = document.getElementById('base-selector');
+  grid.innerHTML = Object.values(BASES).map(b =>
+    `<div class="amount-card${builderState.base===b.id?' selected':''}" onclick="selectBase('${b.id}')">
+      <div class="amount-card-name">${b.emoji} ${b.name}</div>
+      <div class="amount-card-desc">${b.desc}</div>
+      <div class="amount-card-nutrition" style="font-size:.72rem;color:var(--caramel);">
+        ${b.fixedIngredients.map(i=>`${Object.entries(i.nutrition).filter(([k,v])=>v>0).map(([k,v])=>`${v}${k==='cal'?'':k==='protein'||k==='fat'||k==='carbs'||k==='fiber'?'g':''} ${k}`).join(' · ')}`).join(' + ')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function selectBase(id) {
+  builderState.base = id;
+  builderState.yogurt = false;
+  builderState.flavors = {};
+  builderState.sweeteners = {};
+  builderState.toppings = new Set();
+  document.getElementById('yogurt-addon-wrap').style.display = id === 'chia' ? 'block' : 'none';
+  document.getElementById('yogurt-check').checked = false;
+  renderBaseSelector();
+  renderFlavorSelector();
+  renderSweetenerSelector();
+  renderToppingSelector();
+  updateNutrition();
+}
+
+function renderFlavorSelector() {
+  const grid = document.getElementById('flavor-selector');
+  const availFlavors = FLAVORS.filter(f => f.bases.includes(builderState.base) || f.bases.includes('both'));
+  grid.innerHTML = availFlavors.map(f => {
+    const qty = builderState.flavors[f.id] || 0;
+    return `<div class="amount-card${qty>0?' selected':''}">
+      <div class="amount-card-name">${f.name}</div>
+      <div class="amount-card-desc">${f.desc}</div>
+      <div class="amount-card-nutrition">${f.nutrition.cal} cal/tbsp · ${f.nutrition.protein}g pro · ${f.nutrition.carbs}g carbs</div>
+      <div class="amount-controls">
+        <button class="amt-btn" onclick="adjustFlavor('${f.id}', -0.5)" ${qty<=0?'disabled':''}>−</button>
+        <span class="amt-display">${qty > 0 ? qty + '<span class="amt-unit"> tbsp</span>' : '0'}</span>
+        <button class="amt-btn" onclick="adjustFlavor('${f.id}', 0.5)" ${getFlavorsTotal()>=3||qty>=f.maxTbsp?'disabled':''}>+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjustFlavor(id, delta) {
+  const current = builderState.flavors[id] || 0;
+  const total = getFlavorsTotal();
+  const f = FLAVORS.find(x=>x.id===id);
+  if (!f) return;
+  let newVal = Math.max(0, Math.min(f.maxTbsp, current + delta));
+  if (delta > 0 && total + delta > 3) return;
+  if (newVal === 0) delete builderState.flavors[id];
+  else builderState.flavors[id] = Math.round(newVal*2)/2;
+  renderFlavorSelector();
+  updateFlavorBar();
+  updateNutrition();
+}
+
+function getFlavorsTotal() {
+  return Object.values(builderState.flavors).reduce((a,b)=>a+b,0);
+}
+
+function updateFlavorBar() {
+  const total = getFlavorsTotal();
+  const pct = Math.min(100, (total/3)*100);
+  const bar = document.getElementById('flavor-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'tbsp-bar-fill' + (total===3?' full':total>3?' over':'');
+  document.getElementById('flavor-tbsp-label').textContent = total + ' / 3';
+  const status = document.getElementById('flavor-status');
+  const nextBtn = document.getElementById('flavor-next');
+  if (total === 3) {
+    status.textContent = '✓ Perfect! Exactly 3 tbsp selected.';
+    status.className = 'tbsp-status ok';
+    nextBtn.disabled = false;
+  } else if (total > 3) {
+    status.textContent = `Over by ${Math.round((total-3)*2)/2} tbsp — reduce a selection.`;
+    status.className = 'tbsp-status over';
+    nextBtn.disabled = true;
+  } else {
+    status.textContent = `${Math.round((3-total)*2)/2} tbsp remaining to fill.`;
+    status.className = 'tbsp-status';
+    nextBtn.disabled = true;
+  }
+}
+
+function renderSweetenerSelector() {
+  const grid = document.getElementById('sweetener-selector');
+  grid.innerHTML = SWEETENERS.map(s => {
+    const qty = builderState.sweeteners[s.id] || 0;
+    return `<div class="amount-card${qty>0?' selected':''}">
+      <div class="amount-card-name">${s.name}</div>
+      <div class="amount-card-desc">${s.desc}</div>
+      <div class="amount-card-nutrition">${s.nutrition.cal} cal/tbsp · ${s.nutrition.sugar}g sugar</div>
+      <div class="amount-controls">
+        <button class="amt-btn" onclick="adjustSweet('${s.id}', -0.5)" ${qty<=0?'disabled':''}>−</button>
+        <span class="amt-display">${qty > 0 ? qty + '<span class="amt-unit"> tbsp</span>' : '0'}</span>
+        <button class="amt-btn" onclick="adjustSweet('${s.id}', 0.5)" ${getSweetsTotal()>=3||qty>=s.maxTbsp?'disabled':''}>+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjustSweet(id, delta) {
+  const current = builderState.sweeteners[id] || 0;
+  const total = getSweetsTotal();
+  const s = SWEETENERS.find(x=>x.id===id);
+  if (!s) return;
+  let newVal = Math.max(0, Math.min(s.maxTbsp, current + delta));
+  if (delta > 0 && total + delta > 3) return;
+  if (newVal === 0) delete builderState.sweeteners[id];
+  else builderState.sweeteners[id] = Math.round(newVal*2)/2;
+  renderSweetenerSelector();
+  updateSweetBar();
+  updateNutrition();
+}
+
+function getSweetsTotal() {
+  return Object.values(builderState.sweeteners).reduce((a,b)=>a+b,0);
+}
+
+function updateSweetBar() {
+  const total = getSweetsTotal();
+  const pct = Math.min(100, (total/3)*100);
+  const bar = document.getElementById('sweet-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'tbsp-bar-fill' + (total===3?' full':total>3?' over':'');
+  document.getElementById('sweet-tbsp-label').textContent = total + ' / 3';
+  const status = document.getElementById('sweet-status');
+  const nextBtn = document.getElementById('sweet-next');
+  if (total === 3) {
+    status.textContent = '✓ Perfect! Exactly 3 tbsp selected.';
+    status.className = 'tbsp-status ok';
+    nextBtn.disabled = false;
+  } else if (total > 3) {
+    status.textContent = `Over by ${Math.round((total-3)*2)/2} tbsp — reduce a selection.`;
+    status.className = 'tbsp-status over';
+    nextBtn.disabled = true;
+  } else {
+    status.textContent = `${Math.round((3-total)*2)/2} tbsp remaining to fill.`;
+    status.className = 'tbsp-status';
+    nextBtn.disabled = true;
+  }
+}
+
+function renderToppingSelector() {
+  const grid = document.getElementById('topping-selector');
+  const avail = TOPPINGS.filter(t => t.bases.includes(builderState.base) || t.bases.includes('both'));
+  grid.innerHTML = avail.map(t =>
+    `<label class="topping-check">
+      <input type="checkbox" ${builderState.toppings.has(t.id)?'checked':''} onchange="toggleTopping('${t.id}')"/>
+      <div class="topping-check-text">
+        <div class="topping-check-name">${t.name}</div>
+        <div class="topping-check-desc">${t.desc}</div>
+        <div class="topping-check-cal">${t.nutrition.cal} cal · ${t.nutrition.protein}g protein</div>
+      </div>
+    </label>`
+  ).join('');
+}
+
+function toggleTopping(id) {
+  if (builderState.toppings.has(id)) builderState.toppings.delete(id);
+  else builderState.toppings.add(id);
+  updateNutrition();
+}
+
+/* ═══════════════ NUTRITION CALC ═══════════════ */
+function updateNutrition() {
+  builderState.yogurt = document.getElementById('yogurt-check')?.checked || false;
+  const n = calcBuilderNutrition();
+  const fmt = (v, unit='') => v > 0 ? Math.round(v*10)/10 + unit : '—';
+  document.getElementById('ln-cal').textContent = n.cal > 0 ? Math.round(n.cal) : '—';
+  document.getElementById('ln-protein').textContent = fmt(n.protein,'g');
+  document.getElementById('ln-fat').textContent = fmt(n.fat,'g');
+  document.getElementById('ln-carbs').textContent = fmt(n.carbs,'g');
+  document.getElementById('ln-fiber').textContent = fmt(n.fiber,'g');
+  document.getElementById('ln-sugar').textContent = fmt(n.sugar,'g');
+}
+
+function calcBuilderNutrition() {
+  const b = BASES[builderState.base];
+  let n = {cal:0,protein:0,fat:0,carbs:0,fiber:0,sugar:0};
+  b.fixedIngredients.forEach(i => addN(n, i.nutrition));
+  if (builderState.yogurt) addN(n, {cal:80,protein:14,fat:0,carbs:6,fiber:0,sugar:5});
+  Object.entries(builderState.flavors).forEach(([id, tbsp]) => {
+    const f = FLAVORS.find(x=>x.id===id);
+    if (f) addN(n, scaleN(f.nutrition, tbsp));
+  });
+  Object.entries(builderState.sweeteners).forEach(([id, tbsp]) => {
+    const s = SWEETENERS.find(x=>x.id===id);
+    if (s) addN(n, scaleN(s.nutrition, tbsp));
+  });
+  builderState.toppings.forEach(id => {
+    const t = TOPPINGS.find(x=>x.id===id);
+    if (t) addN(n, t.nutrition);
+  });
+  // Per serving
+  return {
+    cal: n.cal/2, protein: n.protein/2, fat: n.fat/2,
+    carbs: n.carbs/2, fiber: n.fiber/2, sugar: n.sugar/2
+  };
+}
+
+/* ═══════════════ BUILDER NAVIGATION ═══════════════ */
+function nextStep() {
+  if (currentStep < 4) {
+    currentStep++;
+    showStep(currentStep);
+    renderBuilderProgress();
+    if (currentStep === 4) prepareReview();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    showStep(currentStep);
+    renderBuilderProgress();
+  }
+}
+
+function showStep(n) {
+  document.querySelectorAll('.builder-step').forEach((el,i) => {
+    el.classList.toggle('active', i === n);
+  });
+  if (n === 1) { updateFlavorBar(); renderFlavorSelector(); }
+  if (n === 2) { updateSweetBar(); renderSweetenerSelector(); }
+}
+
+function resetBuilder() {
+  currentStep = 0;
+  builderState = {base:'tofu',yogurt:false,flavors:{},sweeteners:{},toppings:new Set()};
+  document.getElementById('submit-success').classList.remove('show');
+  document.getElementById('submit-btn').disabled = false;
+  renderBuilderSteps();
+  showStep(0);
+  renderBuilderProgress();
+}
+
+/* ═══════════════ AI RECIPE GENERATION ═══════════════ */
+async function prepareReview() {
+  const flavorNames = Object.entries(builderState.flavors).map(([id,tbsp])=>{
+    const f=FLAVORS.find(x=>x.id===id); return f?`${f.name} (${tbsp} tbsp)`:'';
+  }).filter(Boolean).join(', ');
+  const sweetNames = Object.entries(builderState.sweeteners).map(([id,tbsp])=>{
+    const s=SWEETENERS.find(x=>x.id===id); return s?`${s.name} (${tbsp} tbsp)`:'';
+  }).filter(Boolean).join(', ');
+  const toppingNames = [...builderState.toppings].map(id=>{
+    const t=TOPPINGS.find(x=>x.id===id); return t?t.name:'';
+  }).filter(Boolean).join(', ');
+
+  const tags = [
+    BASES[builderState.base].name,
+    ...Object.keys(builderState.flavors).map(id=>FLAVORS.find(x=>x.id===id)?.name),
+    ...Object.keys(builderState.sweeteners).map(id=>SWEETENERS.find(x=>x.id===id)?.name),
+  ].filter(Boolean);
+
+  document.getElementById('review-tags').innerHTML = tags.map(t=>
+    `<span class="review-tag">${t}</span>`).join('');
+
+  document.getElementById('ai-loader').style.display = 'flex';
+  document.getElementById('recipe-name-input').value = '';
+
+  const prompt = `You are a creative food writer for a healthy pudding recipe app. 
+A user just built a no-heat pudding with these ingredients:
+Base: ${BASES[builderState.base].name}
+Flavors: ${flavorNames}
+Sweeteners: ${sweetNames}
+${builderState.yogurt?'Greek yogurt blended in':''}
+${toppingNames ? 'Toppings: '+toppingNames : ''}
+
+Generate:
+1. A creative, evocative recipe name (3-5 words, no quotes)
+2. A single sentence description that captures the flavor profile and vibe (15-25 words)
+
+Respond in this exact format:
+NAME: [recipe name]
+DESC: [one sentence description]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:200,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const nameMatch = text.match(/NAME:\s*(.+)/);
+    const descMatch = text.match(/DESC:\s*(.+)/);
+    const name = nameMatch ? nameMatch[1].trim() : generateFallbackName();
+    const desc = descMatch ? descMatch[1].trim() : 'A custom no-heat pudding creation.';
+    document.getElementById('recipe-name-input').value = name;
+    document.getElementById('ai-loader').style.display = 'none';
+    document.getElementById('recipe-desc-display').innerHTML = `<em>${desc}</em>`;
+    document.getElementById('recipe-desc-display').dataset.desc = desc;
+  } catch(e) {
+    const name = generateFallbackName();
+    document.getElementById('recipe-name-input').value = name;
+    document.getElementById('ai-loader').style.display = 'none';
+    document.getElementById('recipe-desc-display').innerHTML = '<em>A custom no-heat pudding creation.</em>';
+    document.getElementById('recipe-desc-display').dataset.desc = 'A custom no-heat pudding creation.';
+  }
+}
+
+function generateFallbackName() {
+  const adj = ['Silky','Dreamy','Velvety','Golden','Lush','Creamy','Rich'];
+  const noun = ['Delight','Creation','Blend','Bowl','Dream','Pudding'];
+  return adj[Math.floor(Math.random()*adj.length)] + ' ' + noun[Math.floor(Math.random()*noun.length)];
+}
+
+/* ═══════════════ DOWNLOAD ═══════════════ */
+function buildDLCard(recipe) {
+  const nut = recipe.nutrition || calcBuilderNutrition();
+  const isBuilder = !recipe.flavors?.length;
+  const flavText = isBuilder
+    ? Object.entries(builderState.flavors).map(([id,tbsp])=>{const f=FLAVORS.find(x=>x.id===id);return f?`${f.name}: ${tbsp} tbsp`:''}).filter(Boolean)
+    : recipe.flavors.map(f=>{const d=FLAVORS.find(x=>x.id===f.id);return d?`${d.name}: ${f.tbsp} tbsp`:''}).filter(Boolean);
+  const sweetText = isBuilder
+    ? Object.entries(builderState.sweeteners).map(([id,tbsp])=>{const s=SWEETENERS.find(x=>x.id===id);return s?`${s.name}: ${tbsp} tbsp`:''}).filter(Boolean)
+    : recipe.sweeteners.map(s=>{const d=SWEETENERS.find(x=>x.id===s.id);return d?`${d.name}: ${s.tbsp} tbsp`:''}).filter(Boolean);
+
+  document.getElementById('dl-title').textContent = recipe.name || document.getElementById('recipe-name-input').value || 'My Pudding';
+  document.getElementById('dl-tagline').textContent = recipe.description || document.getElementById('recipe-desc-display').dataset.desc || '';
+  document.getElementById('dl-ingredients').innerHTML = [
+    `Base: ${BASES[recipe.base || builderState.base].name}`,
+    ...flavText.map(t=>`Flavor: ${t}`),
+    ...sweetText.map(t=>`Sweetener: ${t}`),
+  ].map(t=>`<div>${t}</div>`).join('');
+  document.getElementById('dl-nutrition').innerHTML =
+    `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:900;color:var(--gold)">${Math.round(nut.cal)}</div><div style="font-size:.65rem;opacity:.5">Cal</div></div>
+     <div style="text-align:center"><div style="font-size:1.8rem;font-weight:900;color:var(--gold)">${Math.round(nut.protein*10)/10}g</div><div style="font-size:.65rem;opacity:.5">Protein</div></div>
+     <div style="text-align:center"><div style="font-size:1.8rem;font-weight:900;color:var(--gold)">${Math.round(nut.carbs*10)/10}g</div><div style="font-size:.65rem;opacity:.5">Carbs</div></div>
+     <div style="text-align:center"><div style="font-size:1.8rem;font-weight:900;color:var(--gold)">${Math.round(nut.fiber*10)/10}g</div><div style="font-size:.65rem;opacity:.5">Fiber</div></div>`;
+}
+
+async function downloadPNG(recipe) {
+  buildDLCard(recipe || {});
+  const card = document.getElementById('dl-card');
+  card.style.left = '-9999px';
+  try {
+    const canvas = await html2canvas(card, {backgroundColor:null,scale:2});
+    const link = document.createElement('a');
+    link.download = (recipe?.name || document.getElementById('recipe-name-input').value || 'pudding-recipe').replace(/\s+/g,'-').toLowerCase() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) { alert('PNG download failed. Try PDF instead.'); }
+}
+
+async function downloadPDF(recipe) {
+  buildDLCard(recipe || {});
+  const card = document.getElementById('dl-card');
+  try {
+    const canvas = await html2canvas(card, {scale:2});
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait',unit:'px',format:[600,800]});
+    pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,100,600,400);
+    const name = (recipe?.name || document.getElementById('recipe-name-input').value || 'pudding-recipe').replace(/\s+/g,'-').toLowerCase();
+    pdf.save(name + '.pdf');
+  } catch(e) { alert('PDF download failed.'); }
+}
+
+function downloadSigPNG(id) {
+  const r = SIGNATURE_RECIPES.find(x=>x.id===id);
+  if (!r) return;
+  const nut = calcNutrition(r);
+  downloadPNG({name:r.name,description:r.tagline,base:r.base,flavors:r.flavors,sweeteners:r.sweeteners,nutrition:nut});
+}
+function downloadSigPDF(id) {
+  const r = SIGNATURE_RECIPES.find(x=>x.id===id);
+  if (!r) return;
+  const nut = calcNutrition(r);
+  downloadPDF({name:r.name,description:r.tagline,base:r.base,flavors:r.flavors,sweeteners:r.sweeteners,nutrition:nut});
+}
+
+/* ═══════════════ SUBMIT RECIPE ═══════════════ */
+async function submitRecipe() {
+  const name = document.getElementById('recipe-name-input').value.trim();
+  const submitter = document.getElementById('submitter-name').value.trim();
+  const desc = document.getElementById('recipe-desc-display').dataset.desc || '';
+  if (!name) { alert('Please add a recipe name first.'); return; }
+
+  const nut = calcBuilderNutrition();
+  const recipe = {
+    name, description: desc,
+    base: builderState.base,
+    flavors: Object.entries(builderState.flavors).map(([id,tbsp])=>({id,tbsp})),
+    sweeteners: Object.entries(builderState.sweeteners).map(([id,tbsp])=>({id,tbsp})),
+    toppings: [...builderState.toppings],
+    yogurt_addon: builderState.yogurt,
+    nutrition: nut,
+    display_name: submitter || 'Anonymous',
+    avg_rating: 0,
+    rating_count: 0,
+  };
+
+  document.getElementById('submit-btn').disabled = true;
+
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('recipes').insert([recipe]);
+      if (error) throw error;
+    } catch(e) {
+      console.error('Supabase error:', e);
+      // Fall through to local storage
+    }
+  }
+
+  // Local fallback
+  communityRecipes.unshift({...recipe, id:'local_'+Date.now(), created_at: new Date().toISOString()});
+  document.getElementById('submit-success').classList.add('show');
+  renderCommunityGrid();
+}
+
+/* ═══════════════ COMMUNITY ═══════════════ */
+async function loadCommunityRecipes() {
+  if (supabase) {
+    try {
+      const order = communitySort === 'top' ? {column:'avg_rating',ascending:false} : {column:'created_at',ascending:false};
+      const {data, error} = await supabase.from('recipes').select('*').order(order.column,{ascending:order.ascending});
+      if (!error && data) {
+        communityRecipes = data;
+        renderCommunityGrid();
+        return;
+      }
+    } catch(e) {}
+  }
+  renderCommunityGrid();
+}
+
+function setCommunitySort(sort) {
+  communitySort = sort;
+  document.querySelectorAll('.sort-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&sort==='newest')||(i===1&&sort==='top'));
+  });
+  if (sort === 'top') {
+    communityRecipes.sort((a,b) => (b.avg_rating||0) - (a.avg_rating||0));
+  } else {
+    communityRecipes.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+  renderCommunityGrid();
+}
+
+function renderCommunityGrid() {
+  const grid = document.getElementById('community-grid');
+  if (!communityRecipes.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <h3>No recipes yet</h3>
+      <p>Be the first — build your own pudding and share it with the community.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = communityRecipes.map(r => renderCommunityCard(r)).join('');
+}
+
+function renderCommunityCard(r) {
+  const nut = r.nutrition || {};
+  const flavNames = (r.flavors||[]).map(f=>{const d=FLAVORS.find(x=>x.id===f.id);return d?d.name:f.id;}).join(', ');
+  const sweetNames = (r.sweeteners||[]).map(s=>{const d=SWEETENERS.find(x=>x.id===s.id);return d?d.name:s.id;}).join(', ');
+  const rating = Math.round((r.avg_rating||0)*10)/10;
+  const date = new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  return `<div class="community-card" id="cc-${r.id}">
+    <div class="cc-header">
+      <div class="cc-base-tag">${r.base === 'chia' ? '🌱 Chia' : '🫙 Silken Tofu'}</div>
+      <div class="cc-name">${r.name}</div>
+      <div class="cc-desc">${r.description || ''}</div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-ingredients">
+        ${flavNames ? `<strong>Flavors:</strong> ${flavNames}<br>` : ''}
+        ${sweetNames ? `<strong>Sweeteners:</strong> ${sweetNames}` : ''}
+        ${r.yogurt_addon ? '<br><strong>+ Greek Yogurt</strong>' : ''}
+      </div>
+      <div class="cc-nutrition">
+        <div class="cc-nut-item"><span class="cc-nut-val">${Math.round(nut.cal||0)}</span><span class="cc-nut-label">Cal</span></div>
+        <div class="cc-nut-item"><span class="cc-nut-val">${Math.round((nut.protein||0)*10)/10}g</span><span class="cc-nut-label">Protein</span></div>
+        <div class="cc-nut-item"><span class="cc-nut-val">${Math.round((nut.carbs||0)*10)/10}g</span><span class="cc-nut-label">Carbs</span></div>
+        <div class="cc-nut-item"><span class="cc-nut-val">${Math.round((nut.fiber||0)*10)/10}g</span><span class="cc-nut-label">Fiber</span></div>
+      </div>
+    </div>
+    <div class="cc-footer">
+      <div class="cc-meta">By ${r.display_name||'Anonymous'} · ${date}</div>
+      <div class="cc-actions">
+        <button class="cc-dl-btn" onclick="downloadPNG(${JSON.stringify(r).replace(/"/g,'&quot;')})">PNG</button>
+        <button class="cc-dl-btn" onclick="downloadPDF(${JSON.stringify(r).replace(/"/g,'&quot;')})">PDF</button>
+      </div>
+    </div>
+    <div style="padding:12px 22px 0;border-top:1px solid var(--parchment);">
+      <div class="spoon-rating">
+        <div class="spoon-stars" id="spoons-${r.id}">
+          ${[1,2,3,4,5].map(n=>`<span class="spoon${n<=(r.avg_rating||0)?' active':''}" onclick="rateRecipe('${r.id}',${n})">🥄</span>`).join('')}
+        </div>
+        <span class="spoon-avg">${rating > 0 ? rating + ' ('+r.rating_count+')' : 'Be the first to rate'}</span>
+      </div>
+    </div>
+    <div class="cc-comments">
+      <button class="comment-toggle" onclick="toggleComments('${r.id}')">💬 Comments</button>
+      <div id="comments-${r.id}" style="display:none">
+        <div class="comments-list" id="comments-list-${r.id}"></div>
+        <div class="comment-form">
+          <input type="text" placeholder="Your name" id="cname-${r.id}"/>
+          <textarea placeholder="Leave a comment…" id="ctext-${r.id}"></textarea>
+          <button class="comment-submit" onclick="addComment('${r.id}')">Post Comment</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function rateRecipe(recipeId, spoons) {
+  // Update UI optimistically
+  const starsEl = document.getElementById('spoons-' + recipeId);
+  if (starsEl) {
+    starsEl.querySelectorAll('.spoon').forEach((s,i) => s.classList.toggle('active', i < spoons));
+  }
+  if (supabase) {
+    try {
+      await supabase.from('ratings').upsert([{recipe_id:recipeId,session_id:SESSION_ID,spoons}],{onConflict:'recipe_id,session_id'});
+      // Recalculate avg
+      const {data} = await supabase.from('ratings').select('spoons').eq('recipe_id',recipeId);
+      if (data?.length) {
+        const avg = data.reduce((a,b)=>a+b.spoons,0)/data.length;
+        await supabase.from('recipes').update({avg_rating:avg,rating_count:data.length}).eq('id',recipeId);
+      }
+    } catch(e) { console.warn('Rating error:', e); }
+  }
+}
+
+function toggleComments(id) {
+  const el = document.getElementById('comments-' + id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (!open) loadComments(id);
+}
+
+async function loadComments(recipeId) {
+  const list = document.getElementById('comments-list-' + recipeId);
+  if (!list) return;
+  if (supabase) {
+    try {
+      const {data} = await supabase.from('comments').select('*').eq('recipe_id',recipeId).order('created_at',{ascending:true});
+      if (data?.length) {
+        list.innerHTML = data.map(c=>`<div class="comment-item">
+          <div class="comment-author">${c.display_name}</div>
+          <div class="comment-text">${c.content}</div>
+          <div class="comment-date">${new Date(c.created_at).toLocaleDateString()}</div>
+        </div>`).join('');
+        return;
+      }
+    } catch(e) {}
+  }
+  list.innerHTML = '<p style="font-size:.8rem;opacity:.5;padding:8px 0;">No comments yet. Be first!</p>';
+}
+
+async function addComment(recipeId) {
+  const name = document.getElementById('cname-' + recipeId)?.value.trim();
+  const text = document.getElementById('ctext-' + recipeId)?.value.trim();
+  if (!name || !text) { alert('Please add your name and a comment.'); return; }
+  if (supabase) {
+    try {
+      await supabase.from('comments').insert([{recipe_id:recipeId,display_name:name,content:text}]);
+      document.getElementById('cname-' + recipeId).value = '';
+      document.getElementById('ctext-' + recipeId).value = '';
+      loadComments(recipeId);
+      return;
+    } catch(e) { console.warn('Comment error:', e); }
+  }
+  // Local fallback
+  const list = document.getElementById('comments-list-' + recipeId);
+  if (list) list.innerHTML += `<div class="comment-item"><div class="comment-author">${name}</div><div class="comment-text">${text}</div><div class="comment-date">Just now</div></div>`;
+  document.getElementById('cname-' + recipeId).value = '';
+  document.getElementById('ctext-' + recipeId).value = '';
+}
+
+/* ═══════════════ INGREDIENT SUGGESTION ═══════════════ */
+function openSuggestModal() {
+  document.getElementById('suggest-modal').classList.add('open');
+}
+function closeSuggestModal() {
+  document.getElementById('suggest-modal').classList.remove('open');
+}
+
+async function submitSuggestion() {
+  const name = document.getElementById('sg-name').value.trim();
+  const category = document.getElementById('sg-category').value;
+  const base = document.getElementById('sg-base').value;
+  const amount = document.getElementById('sg-amount').value.trim();
+  const desc = document.getElementById('sg-desc').value.trim();
+  const submitter = document.getElementById('sg-submitter').value.trim();
+  if (!name) { alert('Please enter an ingredient name.'); return; }
+  if (supabase) {
+    try {
+      await supabase.from('ingredient_suggestions').insert([{name,category,base_compatibility:base,amount,description:desc,submitter,status:'pending'}]);
+    } catch(e) { console.warn('Suggestion error:', e); }
+  }
+  closeSuggestModal();
+  alert(`Thanks! "${name}" has been submitted for review. We'll add it to the builder if approved.`);
+  ['sg-name','sg-amount','sg-desc','sg-submitter'].forEach(id => document.getElementById(id).value = '');
+}
+
+// Close modal on overlay click
+document.getElementById('suggest-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeSuggestModal();
+});
+</script>
+</body>
+</html>
